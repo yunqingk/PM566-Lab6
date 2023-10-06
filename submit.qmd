@@ -7,10 +7,6 @@ editor: visual
 ---
 
 ```{r}
-
-```
-
-```{r}
 library(readr)
 library(dplyr)
 mt_samples <- read_csv("https://raw.githubusercontent.com/USCbiostats/data-science-data/master/00_mtsamples/mtsamples.csv")
@@ -26,6 +22,8 @@ head(mt_samples)
 mt_samples %>%
   count(medical_specialty, sort = TRUE)
 ```
+
+Looks like these medical specialties are not related to each other, with surgery has the most count.
 
 ## Question 2
 
@@ -56,6 +54,8 @@ mt_samples %>%
   labs(title = "Top 20 Most Frequent Words", x = "Frequency", y = "Word")
 ```
 
+The top 20 most frequent words don't make any sense, they are very common words in English and we are not able to extract useful information about the original text.
+
 ## Question 3
 
 ```{r}
@@ -72,6 +72,8 @@ mt_samples %>%
   labs(title = "Top 20 Most Frequent Words (Stopwords and Numbers Removed)", x = "Frequency", y = "Word")
 ```
 
+After removing stop words, we have a better idea about what the text is about, it's clearly related to medicals.
+
 ## Question 4
 
 ```{r}
@@ -85,6 +87,8 @@ mt_samples %>%
   unnest_ngrams(ngram, transcription, n = 3) %>%
   count(ngram, sort = TRUE)
 ```
+
+The bi-grams and tri-grams don't really make any differences.
 
 ## Question 5
 
