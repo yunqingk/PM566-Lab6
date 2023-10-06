@@ -1,28 +1,127 @@
 ---
-title: ""
-author: ""
-format:
-  html:
-    embed-resources: true
+title: "Lab 6"
+author: "Karisa Ke"
+format: html
+embed-resources: true
+editor: visual
 ---
 
-## Quarto
-
-Quarto enables you to weave together content and executable code into a finished document. To learn more about Quarto see <https://quarto.org>.
-
-## Running Code
-
-When you click the **Render** button a document will be generated that includes both content and the output of embedded code. You can embed code like this:
-
 ```{r}
-1 + 1
+knitr::opts_chunk$set(eval = FALSE, include  = TRUE)
 ```
 
-You can add options to executable code like this
-
 ```{r}
-#| echo: false
-2 * 2
+library(readr)
+library(dplyr)
+mt_samples <- read_csv("https://raw.githubusercontent.com/USCbiostats/data-science-data/master/00_mtsamples/mtsamples.csv")
+mt_samples <- mt_samples %>%
+  select(description, medical_specialty, transcription)
+
+head(mt_samples)
 ```
 
-The `echo: false` option disables the printing of code (only output is displayed).
+## Question 1
+
+```{r}
+mt_samples %>%
+  count(medical_specialty, sort = TRUE)
+```
+
+## Question 2
+
+```{r}
+library(tidytext)
+
+mt_samples %>%
+  unnest_tokens(word, transcription)
+```
+
+```{r}
+mt_samples %>%
+  unnest_tokens(word, transcription) %>%
+  count(word, sort = TRUE)
+```
+
+```{r}
+library(dplyr)
+library(ggplot2)
+library(forcats)
+
+mt_samples %>%
+  unnest_tokens(word, transcription) %>%
+  count(word, sort = TRUE) %>%
+  top_n(20, n) %>%
+  ggplot(aes(x = n, y = fct_reorder(word, n))) +
+  geom_col() +
+  labs(title = "Top 20 Most Frequent Words", x = "Frequency", y = "Word")
+```
+
+## Question 3
+
+```{r}
+library(stopwords)
+library(stringr)
+mt_samples %>%
+  unnest_tokens(word, transcription) %>%
+  anti_join(stop_words) %>%
+  filter(!str_detect(word, "^\\d+$")) %>%
+  count(word, sort = TRUE) %>%
+  top_n(20, n) %>%
+  ggplot(aes(x = n, y = reorder(word, n))) +
+  geom_col() +
+  labs(title = "Top 20 Most Frequent Words (Stopwords and Numbers Removed)", x = "Frequency", y = "Word")
+```
+
+## Question 4
+
+```{r}
+mt_samples %>%
+  unnest_ngrams(ngram, transcription, n = 2) %>%
+  count(ngram, sort = TRUE)
+```
+
+```{r}
+mt_samples %>%
+  unnest_ngrams(ngram, transcription, n = 3) %>%
+  count(ngram, sort = TRUE)
+```
+
+## Question 5
+
+```{r}
+chosen_word <- "the patient"
+
+mt_samples %>%
+  unnest_tokens(word, transcription) %>%
+  filter(word == chosen_word) %>%
+  select(-description) %>%
+  group_by(medical_specialty) %>%
+  arrange(word) %>%
+  summarise(
+    words_before = lag(word),
+    chosen_word = word,
+    words_after = lead(word)
+  )
+```
+
+## Question 6
+
+```{r}
+mt_samples %>%
+  unnest_tokens(word, transcription) %>%
+  anti_join(stop_words) %>%
+  filter(!str_detect(word, "^\\d+$")) %>%
+  group_by(medical_specialty) %>%
+  count(word, sort = TRUE) %>%
+  top_n(1, n)
+```
+
+```{r}
+mt_samples %>%
+  unnest_tokens(word, transcription) %>%
+  anti_join(stop_words) %>%
+  filter(!str_detect(word, "^\\d+$")) %>%
+  group_by(medical_specialty) %>%
+  count(word, sort = TRUE) %>%
+  top_n(5, n)
+```
